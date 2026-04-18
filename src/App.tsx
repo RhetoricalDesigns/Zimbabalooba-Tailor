@@ -58,7 +58,7 @@ const DEFAULT_OPTIONS: GenerationOptions = {
   gender: 'Female',
   race: 'Diverse',
   pose: 'Natural Standing',
-  background: 'Product Studio White'
+  background: 'Zimbabalooba Studio'
 };
 
 // --- App Component ---
@@ -206,7 +206,10 @@ export default function App() {
                 Generate a response in JSON format valid for the following schema:
                 { "title": "...", "description": "...", "metaDescription": "...", "imagePrompt": "..." }
                 
-                The imagePrompt should be a detailed instruction for an image generation model to create a realistic photo of a ${options.gender} model (${options.race}) wearing this garment. Pose: ${options.pose}. Setting: ${options.background}.`
+                The imagePrompt should be a detailed instruction for an image generation model to create a realistic photo of a ${options.gender} model (${options.race}) wearing this garment. Pose: ${options.pose}. Setting: ${options.background}. 
+                IMPORTANT BRAND RULES: 
+                - If the garment is a shirt, blouse, or top, it MUST ALWAYS be neatly tucked into the waistband of the bottoms.
+                - The model MUST be barefoot (no shoes, no socks).`
               }
             ]
           }
@@ -241,10 +244,16 @@ export default function App() {
 
       const backgroundInstruction = options.background === 'Custom Upload' 
         ? "Use the second image provided as the specific background environment. Ensure the model is seamlessly integrated into this environment with correct scale, lighting, and shadows."
-        : `Background: ${options.background}.`;
+        : options.background === 'Product Studio White' || options.background === 'Zimbabalooba Studio'
+          ? "Setting: A Zimbabalooba brand studio. The model stands very close to the wall. The wall is a textured, subdued off-white plastered surface. The floor is matching subdued white painted wood planks. In the background to the side, there is a prominent shuttered louvered door made of seaside worn, weathered, and aged natural wood, providing a vintage coastal contrast against the light environment. Soft, diffused natural light."
+          : `Background: ${options.background}.`;
 
       imageParts.push({
-        text: `Create a photorealistic fashion editorial image of a ${options.gender} model (${options.race}) wearing the garment from the first image. Pose: ${options.pose}. ${backgroundInstruction} High-end professional photography style. ${content.imagePrompt}`
+        text: `Create a photorealistic fashion editorial image of a ${options.gender} model (${options.race}) wearing the garment from the first image. Pose: ${options.pose}. ${backgroundInstruction} High-end professional photography style. 
+        Brand Invariants: 
+        1. All shirts/tops MUST be tucked in. 
+        2. The model MUST be completely barefoot. 
+        3. Stylized ${content.imagePrompt}`
       });
 
       const imageResult = await ai.models.generateContent({
@@ -385,8 +394,8 @@ export default function App() {
           <div className="space-y-4">
             <OptionGroup 
               label="Environment" 
-              options={['Product Studio White', 'Luxurious Interior', 'Urban Streetscape', 'Coastal Breeze']}
-              value={options.background}
+              options={['Zimbabalooba Studio', 'Luxurious Interior', 'Urban Streetscape', 'Coastal Breeze']}
+              value={options.background === 'Product Studio White' ? 'Zimbabalooba Studio' : options.background}
               onChange={(v) => setOptions({...options, background: v})}
             />
             
