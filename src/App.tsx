@@ -384,7 +384,8 @@ function ImageEditor({ image, onClose, onApply }: { image: string, onClose: () =
   const [prompt, setPrompt] = useState('');
   const [logoStyle, setLogoStyle] = useState<'embroidered' | 'screen-printed'>('embroidered');
   const [logoColor, setLogoColor] = useState('white ink');
-  const [logoPlacement, setLogoPlacement] = useState('right thigh');
+  const [logoPlacement, setLogoPlacement] = useState('right thigh/pocket and smaller logo at outside and bottom of each pant leg');
+  const [logoAdjustment, setLogoAdjustment] = useState('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -401,7 +402,7 @@ function ImageEditor({ image, onClose, onApply }: { image: string, onClose: () =
 
     const fullPrompt = `LOGO RECONSTRUCTION: Replace the distorted artifact with a crisp, high-definition ${logoStyle} Zimbabalooba logo. 
 GEOMETRY: The logo must be perfectly proportional and undistorted, maintaining its original vector-like clarity despite the fabric folds. 
-FIDELITY LOCK: Ensure the logo sits flat on the ${logoPlacement} area, following the natural lighting and shadows of the garment. 
+FIDELITY LOCK: Ensure the logo sits flat on the ${logoPlacement} area, following the natural lighting and shadows of the garment. ${logoAdjustment ? `OFFSET: ${logoAdjustment}.` : ''}
 TEXTURE: Match the ${logoColor} texture from the source flat lay image exactly. 
 BRAND INTEGRITY: Keep the background as the off-white plastered wall and matte white concrete floor. Do not alter the model's skin texture or the 'barefoot' requirement. 
 USER INSTRUCTIONS: ${prompt}`;
@@ -473,7 +474,17 @@ USER INSTRUCTIONS: ${prompt}`;
               value={logoPlacement} 
               onChange={(e) => setLogoPlacement(e.target.value)}
               className="sleek-input w-full text-xs" 
-              placeholder="e.g., right thigh/pocket"
+              placeholder="e.g., right pocket"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Micro-Adjustment (cm)</span>
+            <input 
+              value={logoAdjustment} 
+              onChange={(e) => setLogoAdjustment(e.target.value)}
+              className="sleek-input w-full text-xs" 
+              placeholder="e.g., 2cm up, 1cm left"
             />
           </div>
 

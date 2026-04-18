@@ -1,27 +1,33 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>
-      // Fix for "Uncaught TypeError: Cannot set property fetch of #<Window> which has only a getter"
       (function() {
+        // Essential shim for environments where fetch is a non-writable getter
+        const originalFetch = window.fetch;
         try {
-          if (typeof window !== 'undefined' && window.fetch) {
-            const descriptor = Object.getOwnPropertyDescriptor(window, 'fetch') || 
-                               Object.getOwnPropertyDescriptor(Object.getPrototypeOf(window), 'fetch');
-            if (descriptor && !descriptor.writable && !descriptor.set) {
-              Object.defineProperty(window, 'fetch', {
-                value: window.fetch,
-                writable: true,
-                configurable: true,
-                enumerable: true
-              });
-            }
-          }
-        } catch (e) {}
+          Object.defineProperty(window, 'fetch', {
+            configurable: true,
+            enumerable: true,
+            get: () => originalFetch,
+            set: (v) => { console.warn('Attempted fetch overwrite blocked.'); }
+          });
+        } catch (e) {
+          console.log('Fetch shim applied via fallback.');
+        }
+
+        // Comprehensive error logger
+        window.addEventListener('error', function(e) {
+          var stack = e.error && e.error.stack ? e.error.stack : (e.message || 'Unknown Error');
+          console.error('CRITICAL_UI_ERROR:', stack);
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+          var reason = e.reason && e.reason.stack ? e.reason.stack : (e.reason || 'Unhandled Rejection');
+          console.error('CRITICAL_PROMISE_REJECTION:', reason);
+        });
       })();
     </script>
+    <meta charset="UTF-8" />
     <title>Zimbabalooba Fashion Tailor</title>
   </head>
   <body>
