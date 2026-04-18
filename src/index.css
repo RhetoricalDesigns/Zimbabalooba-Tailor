@@ -1,0 +1,57 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@theme {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  --color-bg-main: #F8FAFC;
+  --color-bg-panel: #FFFFFF;
+  --color-brand-primary: #F7941D;
+  --color-brand-primary-dark: #D47B16;
+  --color-brand-accent: #006071;
+  --color-brand-accent-dark: #004D5A;
+  --color-text-main: #1E293B;
+  --color-text-muted: #64748B;
+  --color-border-main: #E2E8F0;
+  --color-accent-subtle: #FFF7ED;
+}
+
+@layer base {
+  body {
+    @apply bg-bg-main text-text-main font-sans antialiased overflow-hidden;
+  }
+}
+
+.sleek-card {
+  @apply bg-white rounded-2xl shadow-sm border border-border-main;
+}
+
+.sleek-input {
+  @apply bg-white border border-border-main rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all;
+}
+
+.section-label {
+  @apply text-[10px] uppercase tracking-wider font-bold text-text-muted mb-3 block;
+}
+
+.btn-pill {
+  @apply px-4 py-2 hover:bg-accent-subtle rounded-lg text-sm font-medium border border-border-main transition-all;
+}
+
+.btn-pill-active {
+  @apply bg-brand-accent text-white border-brand-accent;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-text-muted/20 rounded-full hover:bg-text-muted/40;
+}
+

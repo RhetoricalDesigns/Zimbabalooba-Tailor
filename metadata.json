@@ -1,0 +1,12 @@
+{
+  "name": "Zimbabalooba Fashion Tailor",
+  "description": "Virtual Try-On and eCommerce product studio for flat lay clothing items.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "Image Generation",
+    "Product Description Generation",
+    "WooCommerce CSV Export"
+  ]
+}
