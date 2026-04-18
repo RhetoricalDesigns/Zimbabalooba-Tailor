@@ -297,6 +297,7 @@ export default function App() {
 
         <div className="space-y-6">
           <OptionGroup label="Model" options={['Female', 'Male', 'Non-binary']} value={options.gender} onChange={(v: string) => setOptions({...options, gender: v})} />
+          <OptionGroup label="Diversity" options={['Diverse', 'Black', 'Asian', 'Middle Eastern', 'Caucasian', 'Hispanic']} value={options.race} onChange={(v: string) => setOptions({...options, race: v})} />
           <OptionGroup label="Photography" options={['Natural Standing', 'Both Hands in Pockets', 'Walking', 'One Hand in Pocket 45°']} value={options.pose} onChange={(v: string) => setOptions({...options, pose: v})} />
           <div className="space-y-4">
             <OptionGroup label="Environment" options={['Zimbabalooba Studio', 'Luxurious Interior', 'Urban Streetscape']} value={options.background} onChange={(v: string) => setOptions({...options, background: v})} />
