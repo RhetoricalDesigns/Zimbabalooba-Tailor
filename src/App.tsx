@@ -245,7 +245,7 @@ export default function App() {
       const backgroundInstruction = options.background === 'Custom Upload' 
         ? "Use the second image provided as the specific background environment. Ensure the model is seamlessly integrated into this environment with correct scale, lighting, and shadows."
         : options.background === 'Product Studio White' || options.background === 'Zimbabalooba Studio'
-          ? "Setting: A Zimbabalooba brand studio. The model stands very close to the wall. The wall is a textured, subdued off-white plastered surface. The floor is matching subdued white painted wood planks. In the background to the side, there is a prominent shuttered louvered door made of seaside worn, weathered, and aged natural wood, providing a vintage coastal contrast against the light environment. Soft, diffused natural light."
+          ? "Setting: A Zimbabalooba brand studio. The model stands very close to the wall. The wall is a textured, subdued off-white plastered surface. The floor is a flat, matte white concrete floor. In the background to the side, there is a prominent shuttered louvered door made of seaside worn, weathered, and aged natural wood, providing a vintage coastal contrast against the light environment. Soft, diffused natural light."
           : `Background: ${options.background}.`;
 
       imageParts.push({
@@ -387,7 +387,14 @@ export default function App() {
           />
           <OptionGroup 
             label="Photography Style" 
-            options={['Natural Standing', 'Dynamic Movement', 'High Fashion Sit', 'Detail Close-up']}
+            options={[
+              'Natural Standing', 
+              'Sitting', 
+              'Walking', 
+              'Stand 45 Degrees', 
+              'Hands in Pockets Facing Camera', 
+              'One Hand in Pocket 45°'
+            ]}
             value={options.pose}
             onChange={(v) => setOptions({...options, pose: v})}
           />
