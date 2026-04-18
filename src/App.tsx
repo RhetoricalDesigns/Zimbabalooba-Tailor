@@ -63,7 +63,7 @@ const DEFAULT_OPTIONS: GenerationOptions = {
 
 // --- App Component ---
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'studio' | 'collection'>('studio');
+  const [activeTab, setActiveTab] = useState<'studio' | 'collection' | 'edit'>('studio');
   const [generations, setGenerations] = useState<GenerationResult[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -94,6 +94,14 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('zimbabalooba_history', JSON.stringify(generations));
   }, [generations]);
+
+  const removeGeneration = (id: string) => {
+    setGenerations(prev => prev.filter(g => g.id !== id));
+    if (editingGeneration?.id === id) {
+      setEditingGeneration(null);
+      setActiveTab('studio');
+    }
+  };
 
   const handleApplyEdit = async (baseImage: string, maskDataUrl: string, editPrompt: string) => {
     if (!aiRef.current || !editingGeneration) return;
@@ -329,9 +337,6 @@ export default function App() {
     document.body.removeChild(link);
   };
 
-  const removeGeneration = (id: string) => {
-    setGenerations(generations.filter(g => g.id !== id));
-  };
 
   return (
     <div className="flex h-screen w-screen bg-bg-main overflow-hidden">
@@ -487,6 +492,23 @@ export default function App() {
           >
             Saved Library ({generations.length})
           </button>
+          
+          <button 
+            onClick={() => {
+              if (generations.length > 0) {
+                setEditingGeneration(generations[0]);
+                setActiveTab('edit');
+              }
+            }}
+            className={cn(
+              "pb-4 font-semibold text-[0.95rem] transition-all relative",
+              activeTab === 'edit' ? "text-brand-accent after:content-[''] after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-0.5 after:bg-brand-accent" : "text-text-muted hover:text-text-main",
+              generations.length === 0 && "opacity-30 cursor-not-allowed"
+            )}
+            disabled={generations.length === 0}
+          >
+            Ai Brush
+          </button>
 
           <button 
             onClick={downloadWooCommerceCSV}
@@ -517,7 +539,10 @@ export default function App() {
                         className="w-full h-full object-cover"
                       />
                       <button 
-                        onClick={() => setEditingGeneration(generations[0])}
+                        onClick={() => {
+                          setEditingGeneration(generations[0]);
+                          setActiveTab('edit');
+                        }}
                         className="absolute bottom-4 right-4 p-3 bg-brand-accent text-white rounded-xl shadow-lg hover:bg-brand-accent-dark transition-all flex items-center gap-2 font-bold text-xs"
                       >
                         <Palette className="w-4 h-4" />
@@ -580,37 +605,72 @@ export default function App() {
                   )}
                 </div>
               </motion.div>
+            ) : activeTab === 'collection' ? (
+              <motion.div 
+                key="collection"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <div className="section-label mb-6">Historical Archives</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {generations.map((gen, idx) => (
+                    <GenerationCard 
+                      key={gen.id} 
+                      gen={gen} 
+                      delay={idx * 0.05}
+                      onDelete={() => {
+                        setGenerations(generations.filter(g => g.id !== gen.id));
+                      }}
+                      onEdit={() => {
+                        setEditingGeneration(gen);
+                        setActiveTab('edit');
+                      }}
+                    />
+                  ))}
+                  {generations.length === 0 && (
+                    <div className="col-span-full py-20 text-center border-2 border-dashed border-border-main rounded-3xl">
+                      <History className="w-12 h-12 text-text-muted mx-auto mb-4 opacity-20" />
+                      <p className="text-text-muted font-medium">Your archive is currently empty</p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
             ) : (
-                  <motion.div 
-                    key="collection"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                  >
-                    {generations.map((gen, idx) => (
-                      <GenerationCard 
-                        key={gen.id} 
-                        gen={gen} 
-                        onDelete={() => removeGeneration(gen.id)}
-                        onEdit={() => setEditingGeneration(gen)}
-                        delay={idx * 0.05}
-                      />
-                    ))}
-                  </motion.div>
+              <motion.div 
+                key="edit-tab"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="h-full flex flex-col"
+              >
+                {editingGeneration ? (
+                  <div className="flex-1 min-h-[600px] border border-border-main rounded-3xl overflow-hidden shadow-2xl">
+                    <ImageEditor 
+                      image={editingGeneration.generatedImage}
+                      onClose={() => setActiveTab('studio')}
+                      onApply={(mask, prompt) => handleApplyEdit(editingGeneration.generatedImage, mask, prompt)}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-12 border-2 border-dashed border-border-main rounded-3xl bg-accent-subtle/30">
+                    <Palette className="w-16 h-16 text-text-muted mb-6 opacity-20" />
+                    <h3 className="text-xl font-bold text-text-main mb-2">Select an image to edit</h3>
+                    <p className="text-text-muted max-w-sm mb-8 leading-relaxed">
+                      Go to the Library or Generator view and click the paintbrush icon on any generation to start editing.
+                    </p>
+                    <button 
+                      onClick={() => setActiveTab('collection')}
+                      className="px-8 py-3 bg-brand-accent text-white rounded-xl font-bold hover:bg-brand-accent-dark transition-all"
+                    >
+                      Browse Library
+                    </button>
+                  </div>
                 )}
-              </AnimatePresence>
-            </div>
-
-            <AnimatePresence>
-              {editingGeneration && (
-                <ImageEditor 
-                  image={editingGeneration.generatedImage}
-                  onClose={() => setEditingGeneration(null)}
-                  onApply={(mask, prompt) => handleApplyEdit(editingGeneration.generatedImage, mask, prompt)}
-                />
-              )}
-            </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Footer Library Peek */}
         <div className="mt-8 border-t border-border-main pt-6 shrink-0">
@@ -734,85 +794,103 @@ function ImageEditor({
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-6"
-    >
-      <div className="bg-bg-panel w-full max-w-5xl h-[85vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col">
-        <div className="p-6 border-b border-border-main flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-brand-primary/10 rounded-lg">
-              <Palette className="w-5 h-5 text-brand-primary" />
-            </div>
-            <div>
-              <h3 className="font-bold text-text-main">Neural Paintbrush Editor</h3>
-              <p className="text-[10px] uppercase font-bold text-text-muted tracking-widest">Mark areas to modify and describe changes</p>
-            </div>
+    <div className="bg-bg-panel w-full h-full rounded-2xl overflow-hidden flex flex-col">
+      <div className="p-4 border-b border-border-main flex justify-between items-center bg-white shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-brand-accent/10 rounded-lg">
+            <Palette className="w-4 h-4 text-brand-accent" />
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-bg-main rounded-full transition-colors">
-            <X className="w-6 h-6 text-text-muted" />
-          </button>
+          <div>
+            <h3 className="text-sm font-bold text-text-main leading-tight">Neural Editor</h3>
+            <p className="text-[9px] uppercase font-bold text-text-muted tracking-widest mt-0.5">Brush over changes</p>
+          </div>
+        </div>
+        <button onClick={onClose} className="p-2 hover:bg-bg-main rounded-full transition-colors">
+          <X className="w-5 h-5 text-text-muted" />
+        </button>
+      </div>
+
+      <div className="flex-1 flex min-h-0">
+        <div className="flex-1 bg-gray-900 flex items-center justify-center relative p-8">
+          <div ref={containerRef} className="relative h-full max-w-full aspect-[2/3] bg-black rounded shadow-2xl overflow-hidden border border-white/10">
+            <img src={image} className="w-full h-full object-contain pointer-events-none" alt="edit target" />
+            <canvas
+              ref={canvasRef}
+              onMouseDown={startDrawing}
+              onMouseMove={draw}
+              onMouseUp={stopDrawing}
+              onMouseLeave={stopDrawing}
+              onTouchStart={startDrawing}
+              onTouchMove={draw}
+              onTouchEnd={stopDrawing}
+              className="absolute inset-0 cursor-crosshair mix-blend-screen opacity-70"
+            />
+          </div>
+          <div className="absolute top-12 left-12 flex flex-col gap-2">
+             <button onClick={clear} className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md transition-all text-[9px] uppercase font-black tracking-widest border border-white/10">
+               Reset Mask
+             </button>
+          </div>
+          
+          <div className="absolute top-12 right-12 flex flex-col gap-2">
+             <div className="bg-black/60 backdrop-blur-xl p-3 rounded-2xl border border-white/10 flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[8px] font-black uppercase tracking-widest text-white/40 px-1">Tip Size</span>
+                  <div className="flex items-center gap-2 px-1">
+                    <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
+                    <input type="range" min="10" max="100" defaultValue="40" onChange={(e) => {
+                       const ctx = canvasRef.current?.getContext('2d');
+                       if(ctx) ctx.lineWidth = parseInt(e.target.value);
+                    }} className="w-24 accent-brand-accent" />
+                    <div className="w-5 h-5 rounded-full bg-white/20" />
+                  </div>
+                </div>
+             </div>
+          </div>
         </div>
 
-        <div className="flex-1 flex overflow-hidden">
-          <div className="flex-1 bg-black p-8 flex items-center justify-center relative">
-            <div ref={containerRef} className="relative max-h-full aspect-[3/4] bg-white rounded-lg shadow-2xl overflow-hidden">
-              <img src={image} className="w-full h-full object-contain pointer-events-none" alt="edit target" />
-              <canvas
-                ref={canvasRef}
-                onMouseDown={startDrawing}
-                onMouseMove={draw}
-                onMouseUp={stopDrawing}
-                onMouseLeave={stopDrawing}
-                onTouchStart={startDrawing}
-                onTouchMove={draw}
-                onTouchEnd={stopDrawing}
-                className="absolute inset-0 cursor-crosshair mix-blend-screen opacity-70"
-              />
-            </div>
-            <div className="absolute top-12 left-12 flex flex-col gap-2">
-               <button onClick={clear} className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md transition-all text-[10px] uppercase font-bold">
-                 Clear Mask
-               </button>
+        <div className="w-80 border-l border-border-main p-8 flex flex-col bg-white shrink-0">
+          <div className="flex-1 overflow-y-auto pr-1">
+            <div className="section-label mb-3">Refinement Prompt</div>
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="e.g. 'Add a high-fashion lacing detail to the side' or 'Change the material to a weathered indigo linen'..."
+              className="sleek-input w-full h-48 resize-none text-[13px] leading-relaxed mb-6"
+            />
+            
+            <div className="p-4 bg-accent-subtle rounded-2xl border border-border-main space-y-4">
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-lg bg-white border border-border-main flex items-center justify-center shrink-0">
+                  <Sparkles className="w-4 h-4 text-brand-accent" />
+                </div>
+                <div>
+                   <span className="text-[10px] font-bold text-text-main block mb-1">In-Painting Guide</span>
+                   <p className="text-[9px] leading-tight text-text-muted">Describing the <b>material</b> and <b>lighting</b> of the change helps the AI match the existing studio atmosphere.</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="w-80 border-l border-border-main p-8 flex flex-col gap-8 bg-accent-subtle/30">
-            <div>
-              <label className="section-label mb-3">Edit Instructions</label>
-              <textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="e.g. Change the collar to a lace Peter Pan style..."
-                className="sleek-input w-full h-40 resize-none text-sm leading-relaxed"
-              />
-              <p className="text-[10px] text-text-muted mt-3 italic">
-                Tips: Describe colors, textures, or specific garment details you want to swap.
-              </p>
-            </div>
-
-            <div className="mt-auto space-y-4">
-              <button
-                onClick={handleApply}
-                disabled={!prompt}
-                className={cn(
-                  "w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all",
-                  prompt ? "bg-brand-primary text-white hover:bg-brand-primary-dark shadow-xl" : "bg-bg-main text-text-muted cursor-not-allowed"
-                )}
-              >
-                <Wand2 className="w-5 h-5" />
-                Apply AI Magic
-              </button>
-              <button onClick={onClose} className="w-full py-3 text-sm font-semibold text-text-muted hover:text-text-main transition-colors">
-                Discard Changes
-              </button>
-            </div>
+          <div className="pt-8 border-t border-border-main mt-auto">
+            <button
+              onClick={handleApply}
+              disabled={!prompt}
+              className={cn(
+                "w-full py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 transition-all",
+                prompt ? "bg-brand-accent text-white hover:bg-brand-accent-dark shadow-lg shadow-brand-accent/20" : "bg-gray-100 text-gray-400 cursor-not-allowed"
+              )}
+            >
+              <Wand2 className="w-4 h-4" />
+              Regenerate Area
+            </button>
+            <button onClick={onClose} className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-text-muted hover:text-text-main transition-colors text-center mt-2">
+              Cancel Edit
+            </button>
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
